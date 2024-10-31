@@ -16,6 +16,8 @@
 
 package com.google.ar.core.examples.java.augmentedimage;
 
+import static com.google.ar.core.examples.java.augmentedimage.rendering.AugmentedImageRenderer.getRandomFloat;
+
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -47,6 +49,7 @@ import com.google.ar.core.examples.java.common.helpers.FullScreenHelper;
 import com.google.ar.core.examples.java.common.helpers.SnackbarHelper;
 import com.google.ar.core.examples.java.common.helpers.TrackingStateHelper;
 import com.google.ar.core.examples.java.common.rendering.BackgroundRenderer;
+import com.google.ar.core.examples.java.common.rendering.ObjectRenderer;
 import com.google.ar.core.exceptions.CameraNotAvailableException;
 import com.google.ar.core.exceptions.UnavailableApkTooOldException;
 import com.google.ar.core.exceptions.UnavailableArcoreNotInstalledException;
@@ -323,7 +326,37 @@ public class AugmentedImageActivity extends AppCompatActivity implements GLSurfa
   public boolean onTouchEvent(MotionEvent event) {
     if (event.getAction() == MotionEvent.ACTION_DOWN) {
       Log.d("ARCore", "I touched !!!!!");
-      //augmentedImageRenderer
+
+      //augmentedImageRenderer.addAndy(augmentedImageRenderer.andyRenderer);
+
+        /*try {
+            //var t = augmentedImageRenderer.contextUseFul == null;
+            //Log.d("ARCore", String.valueOf(t)+" "+String.valueOf(augmentedImageRenderer.andyRenderer.size()-1));
+            augmentedImageRenderer.createOnGLThreadAndy(augmentedImageRenderer.contextUseFul, augmentedImageRenderer.andyRenderer.size()-1);
+        } catch (IOException e) {
+            Log.d("ARCore", "Исключение runtime !");
+            throw new RuntimeException(e);
+        }*/
+
+      augmentedImageRenderer.countAndy++;
+      // Получаем координаты касания по экрану
+      /*float x = event.getX();
+      float y = event.getY();*/
+
+      float xx = getRandomFloat(-0.04f, 0.04f);
+      float zz = getRandomFloat(-0.04f, 0.04f);
+
+      augmentedImageRenderer.AndyPositions.add(new Pair<>(xx, zz));
+
+      /*augmentedImageRenderer.drawAndy(augmentedImageRenderer.ViewMatrix,
+              augmentedImageRenderer.ProjectionMatrix,
+              augmentedImageRenderer.ColorCorrectionRgba,
+              x,y,
+              augmentedImageRenderer.AnchorPose,
+              augmentedImageRenderer.MazeScaleFactor,
+              augmentedImageRenderer.ModelMatrix,
+              augmentedImageRenderer.TintColor);*/
+
     }
     return super.onTouchEvent(event);
   }

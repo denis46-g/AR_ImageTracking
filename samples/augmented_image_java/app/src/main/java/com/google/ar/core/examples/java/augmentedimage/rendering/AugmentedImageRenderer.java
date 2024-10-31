@@ -16,12 +16,17 @@
 package com.google.ar.core.examples.java.augmentedimage.rendering;
 
 import android.content.Context;
+import android.util.Pair;
+
 import com.google.ar.core.Anchor;
 import com.google.ar.core.AugmentedImage;
 import com.google.ar.core.Pose;
 import com.google.ar.core.examples.java.common.rendering.ObjectRenderer;
-import com.google.ar.core.examples.java.common.rendering.ObjectRenderer.BlendMode;
+
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 /** Renders an augmented image. */
 public class AugmentedImageRenderer {
@@ -29,8 +34,27 @@ public class AugmentedImageRenderer {
 
   // Add a member variable to hold the maze model.
   private final ObjectRenderer mazeRenderer = new ObjectRenderer();
+
   // Render for Andy
-  private final ObjectRenderer andyRenderer = new ObjectRenderer();
+  public final ObjectRenderer andyRenderer = new ObjectRenderer();
+
+  /*public void addAndy(List<ObjectRenderer> list){
+    ObjectRenderer andy = new ObjectRenderer();
+    list.add(andy);
+  }*/
+
+  //public Context contextUseFul;
+  private static Random random = new Random();
+  public int countAndy = 1;
+  public List<Pair<Float, Float>> AndyPositions = new ArrayList<>();
+  public float[] ViewMatrix;
+  public float[] ProjectionMatrix;
+  public float[] ColorCorrectionRgba;
+  public Pose AnchorPose;
+  public float MazeScaleFactor;
+  public float[] ModelMatrix;
+  public float[] TintColor;
+
   // Create a new pose for the Andy
   private Pose andyPose = Pose.IDENTITY;
 
@@ -48,15 +72,62 @@ public class AugmentedImageRenderer {
 
   public AugmentedImageRenderer() {}
 
+  /*public void createOnGLThreadAndy(Context context, int i) throws IOException{
+    // Initialize andyRenderer
+    andyRenderer.createOnGlThread(
+            context, "models/andy.obj", "models/andy.png");
+    andyRenderer.setMaterialProperties(0.0f, 3.5f, 1.0f, 6.0f);
+  }*/
+
   public void createOnGlThread(Context context) throws IOException {
+
+    //contextUseFul = context;
+
     mazeRenderer.createOnGlThread(
             context, "models/green-maze/GreenMaze.obj", "models/frame_base.png");
     mazeRenderer.setMaterialProperties(0.0f, 3.5f, 1.0f, 6.0f);
+
+    //addAndy(andyRenderer);
 
     // Initialize andyRenderer
     andyRenderer.createOnGlThread(
             context, "models/andy.obj", "models/andy.png");
     andyRenderer.setMaterialProperties(0.0f, 3.5f, 1.0f, 6.0f);
+
+    //createOnGLThreadAndy(contextUseFul, andyRenderer.size() - 1);
+  }
+
+  public void drawAndy(
+          float[] viewMatrix,
+          float[] projectionMatrix,
+          float[] colorCorrectionRgba,
+          int i,
+          Pose anchorPose,
+          float mazeScaleFactor,
+          float[] modelMatrix,
+          float[] tintColor)
+  {
+      // 0.05f is a Magic number to scale
+      if(i == 0){
+          // The Andy's pose is at the maze's vertex's coordinate
+          Pose andyPoseInImageSpace = Pose.makeTranslation(
+                  andyPose.tx() * mazeScaleFactor,
+                  andyPose.ty() * mazeScaleFactor,
+                  andyPose.tz() * mazeScaleFactor);
+
+          anchorPose.compose(andyPoseInImageSpace).toMatrix(modelMatrix, 0);
+      }
+        else{
+          float xxx = AndyPositions.get(i).first;
+          float zzz = AndyPositions.get(i).second;
+          Pose andyModelLocalOffset = Pose.makeTranslation(
+                  xxx,
+                  0.0f,
+                  zzz);
+          anchorPose.compose(andyModelLocalOffset).toMatrix(modelMatrix, 0);
+      }
+      andyRenderer.updateModelMatrix(modelMatrix, 0.05f);
+      andyRenderer.draw(viewMatrix, projectionMatrix, colorCorrectionRgba, tintColor);
   }
 
   // Adjust size of detected image and render it on-screen
@@ -101,14 +172,30 @@ public class AugmentedImageRenderer {
     andyRenderer.draw(viewMatrix, projectionMatrix, colorCorrectionRgba, tintColor);*/
 
     // The Andy's pose is at the maze's vertex's coordinate
-    Pose andyPoseInImageSpace = Pose.makeTranslation(
+    /*Pose andyPoseInImageSpace = Pose.makeTranslation(
             andyPose.tx() * mazeScaleFactor,
             andyPose.ty() * mazeScaleFactor,
             andyPose.tz() * mazeScaleFactor);
 
     anchorPose.compose(andyPoseInImageSpace).toMatrix(modelMatrix, 0);
-    andyRenderer.updateModelMatrix(modelMatrix, 0.05f);
-    andyRenderer.draw(viewMatrix, projectionMatrix, colorCorrectionRgba, tintColor);
+    andyRenderer.get(0).updateModelMatrix(modelMatrix, 0.05f);
+    andyRenderer.get(0).draw(viewMatrix, projectionMatrix, colorCorrectionRgba, tintColor);*/
+
+    /*ViewMatrix = viewMatrix;
+    ProjectionMatrix = projectionMatrix;
+    ColorCorrectionRgba = colorCorrectionRgba;
+    AnchorPose = anchorPose;
+    MazeScaleFactor = mazeScaleFactor;
+    ModelMatrix = modelMatrix;
+    TintColor = tintColor;*/
+
+    if(AndyPositions.size() == 0)
+      AndyPositions.add(new Pair<>(0.0f,0.0f));
+
+    for(int i = 0; i < countAndy; i++){
+      drawAndy(viewMatrix, projectionMatrix, colorCorrectionRgba, i,
+              anchorPose, mazeScaleFactor, modelMatrix, tintColor);
+    }
   }
 
   // Receive Andy pose updates
@@ -123,4 +210,13 @@ public class AugmentedImageRenderer {
     float blue = (colorHex & 0x0000FF) / 255.0f * TINT_INTENSITY;
     return new float[] {red, green, blue, TINT_ALPHA};
   }
+
+  public static float getRandomFloat(float a, float b) {
+    // Генерируем случайное значение от 0 (включительно) до 1 (не включительно)
+    float randomFloat = random.nextFloat();
+    // Масштабируем и смещаем значение для диапазона [a, b]
+    return a + (randomFloat * (b - a));
+  }
 }
+
+
